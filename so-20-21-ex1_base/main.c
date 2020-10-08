@@ -34,12 +34,16 @@ void errorParse(){
     fprintf(stderr, "Error: command invalid\n");
     exit(EXIT_FAILURE);
 }
+
 /* alterar para ler de um ficheiro*/
-void processInput(){
+void processInput(char * input_file){
+    FILE *ptrf;
+    ptrf = fopen(input_file,"r");
+
     char line[MAX_INPUT_SIZE];
 
     /* break loop with ^Z or ^D */
-    while (fgets(line, sizeof(line)/sizeof(char), stdin)) {
+    while (fgets(line, sizeof(line)/sizeof(char), ptrf)) {
         char token, type;
         char name[MAX_INPUT_SIZE];
 
@@ -79,6 +83,7 @@ void processInput(){
             }
         }
     }
+    fclose(ptrf);
 }
 
 void applyCommands(){
@@ -132,12 +137,15 @@ void applyCommands(){
     }
 }
 
+
+
 int main(int argc, char* argv[]) {
     /* init filesystem */
     init_fs();
 
     /* process input and print tree */
-    processInput();
+    char *input_file = argv[1];
+    processInput(input_file);
     applyCommands();
     print_tecnicofs_tree(stdout);
 
