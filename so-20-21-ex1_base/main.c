@@ -34,7 +34,7 @@ void errorParse(){
     fprintf(stderr, "Error: command invalid\n");
     exit(EXIT_FAILURE);
 }
-
+/* alterar para ler de um ficheiro*/
 void processInput(){
     char line[MAX_INPUT_SIZE];
 
