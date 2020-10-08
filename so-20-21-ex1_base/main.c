@@ -86,7 +86,7 @@ void processInput(char * input_file){
     fclose(ptrf);
 }
 
-void applyCommands(){
+void applyCommands(FILE *ptrf){
     while (numberCommands > 0){
         const char* command = removeCommand();
         if (command == NULL){
@@ -106,11 +106,12 @@ void applyCommands(){
             case 'c':
                 switch (type) {
                     case 'f':
-                        printf("Create file: %s\n", name);
+                        //printf("Create file: %s\n", name);
+                        fprintf(ptrf, "Create file: %s\n", name);
                         create(name, T_FILE);
                         break;
                     case 'd':
-                        printf("Create directory: %s\n", name);
+                        fprintf(ptrf, "Create directory: %s\n", name);
                         create(name, T_DIRECTORY);
                         break;
                     default:
@@ -121,12 +122,12 @@ void applyCommands(){
             case 'l': 
                 searchResult = lookup(name);
                 if (searchResult >= 0)
-                    printf("Search: %s found\n", name);
+                    fprintf(ptrf, "Search: %s found\n", name);
                 else
-                    printf("Search: %s not found\n", name);
+                    fprintf(ptrf, "Search: %s not found\n", name);
                 break;
             case 'd':
-                printf("Delete: %s\n", name);
+                fprintf(ptrf, "Delete: %s\n", name);
                 delete(name);
                 break;
             default: { /* error */
@@ -145,10 +146,16 @@ int main(int argc, char* argv[]) {
 
     /* process input and print tree */
     char *input_file = argv[1];
+    char *output_file = argv[2];
     processInput(input_file);
-    applyCommands();
-    print_tecnicofs_tree(stdout);
 
+    FILE *ptrf;
+    ptrf = fopen(output_file,"w");
+
+    applyCommands(ptrf);
+    print_tecnicofs_tree(ptrf);
+
+    fclose(ptrf);
     /* release allocated memory */
     destroy_fs();
     exit(EXIT_SUCCESS);
