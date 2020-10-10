@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "fs/operations.h"
+#include "fs/thread_pool.h"
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
@@ -86,7 +87,11 @@ void processInput(char * input_file){
     fclose(ptrf);
 }
 
-void applyCommands(){
+void applyCommand(){
+
+}
+
+void applyCommands(thread_pool * t_pool){
     while (numberCommands > 0){
         const char* command = removeCommand();
         if (command == NULL){
@@ -146,8 +151,10 @@ int main(int argc, char* argv[]) {
     /* process input and print tree */
     char *input_file = argv[1];
     char *output_file = argv[2];
+
+    thread_pool t_pool = init_thread_pool(4);
     processInput(input_file);
-    applyCommands();
+    applyCommands(&t_pool);
     FILE *ptrf;
     ptrf = fopen(output_file,"w");
     print_tecnicofs_tree(ptrf);

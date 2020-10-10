@@ -261,7 +261,6 @@ int lookup(char *name) {
 		inode_get(current_inumber, &nType, &data);
 		path = strtok(NULL, delim);
 	}
-
 	return current_inumber;
 }
 
