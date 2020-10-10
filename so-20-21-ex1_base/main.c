@@ -25,13 +25,11 @@ int insertCommand(char* data) {
     return 0;
 }
 
-char* removeCommand() {
-    pthread_mutex_lock(&mutex);
+char* getCommand() {
     if(numberCommands > 0){
-        //numberCommands--;
+        /*numberCommands--;*/
         return inputCommands[headQueue++];  
     }
-    pthread_mutex_lock(&mutex);
     return NULL;
 }
 
@@ -92,10 +90,11 @@ void processInput(char * input_file){
 }
 
 void * applyCommand(void *arg){
+
     pthread_mutex_lock(&mutex);
-    const char* command = removeCommand();
-    
+    const char* command = getCommand();
     pthread_mutex_unlock(&mutex);
+
     if (command == NULL)
         return NULL;
 
@@ -145,14 +144,15 @@ void * applyCommand(void *arg){
 
 void applyCommands(thread_pool * t_pool){
     pthread_t pid;
-    pthread_create(&pid, NULL, applyCommand, t_pool);
     while (numberCommands > 0){
         printf("hey\n");
-        pthread_t pid = get_pthread(t_pool);
-        pthread_create(&pid, NULL, applyCommand, NULL);
+        pid = get_pthread(t_pool);
         numberCommands--;
+        pthread_create(&pid, NULL, applyCommand, NULL);
     }
 }
+
+
 
 
 

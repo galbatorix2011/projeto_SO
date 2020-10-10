@@ -6,7 +6,6 @@
 typedef struct thread_pool {
     int index;
     int size;
-    int start;
     pthread_t * pool;
 } thread_pool ;
 

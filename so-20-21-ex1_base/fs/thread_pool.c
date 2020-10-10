@@ -11,10 +11,7 @@ thread_pool init_thread_pool(int size){
 }
 
 pthread_t get_pthread(thread_pool *t_pool){
-    if (t_pool->start)
-        t_pool->start = 0;
-    else
-        pthread_join(t_pool->pool[t_pool->index], NULL);
+    pthread_join(t_pool->pool[t_pool->index], NULL);
     pthread_t thread = t_pool->pool[t_pool->index];
     t_pool->index = t_pool->index = (t_pool->size - 1) ? 0 : t_pool->index++; /* cicle throught the array */
     return thread;
