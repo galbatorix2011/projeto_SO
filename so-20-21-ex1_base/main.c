@@ -86,7 +86,7 @@ void processInput(char * input_file){
     fclose(ptrf);
 }
 
-void applyCommands(FILE *ptrf){
+void applyCommands(){
     while (numberCommands > 0){
         const char* command = removeCommand();
         if (command == NULL){
@@ -106,12 +106,11 @@ void applyCommands(FILE *ptrf){
             case 'c':
                 switch (type) {
                     case 'f':
-                        //printf("Create file: %s\n", name);
-                        fprintf(ptrf, "Create file: %s\n", name);
+                        printf("Create file: %s\n", name);
                         create(name, T_FILE);
                         break;
                     case 'd':
-                        fprintf(ptrf, "Create directory: %s\n", name);
+                        printf("Create directory: %s\n", name);
                         create(name, T_DIRECTORY);
                         break;
                     default:
@@ -122,12 +121,12 @@ void applyCommands(FILE *ptrf){
             case 'l': 
                 searchResult = lookup(name);
                 if (searchResult >= 0)
-                    fprintf(ptrf, "Search: %s found\n", name);
+                    printf("Search: %s found\n", name);
                 else
-                    fprintf(ptrf, "Search: %s not found\n", name);
+                    printf("Search: %s not found\n", name);
                 break;
             case 'd':
-                fprintf(ptrf, "Delete: %s\n", name);
+                printf("Delete: %s\n", name);
                 delete(name);
                 break;
             default: { /* error */
@@ -148,11 +147,9 @@ int main(int argc, char* argv[]) {
     char *input_file = argv[1];
     char *output_file = argv[2];
     processInput(input_file);
-
+    applyCommands();
     FILE *ptrf;
     ptrf = fopen(output_file,"w");
-
-    applyCommands(ptrf);
     print_tecnicofs_tree(ptrf);
 
     fclose(ptrf);
