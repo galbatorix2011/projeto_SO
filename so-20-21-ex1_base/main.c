@@ -153,9 +153,6 @@ void applyCommands(thread_pool * t_pool){
 }
 
 
-
-
-
 int main(int argc, char* argv[]) {
     /* init filesystem */
     init_fs();
@@ -163,8 +160,11 @@ int main(int argc, char* argv[]) {
     /* process input and print tree */
     char *input_file = argv[1];
     char *output_file = argv[2];
+    
+    int t_pool_size;
+    sscanf(argv[3], "%d", &t_pool_size);
 
-    thread_pool t_pool = init_thread_pool(4);
+    thread_pool t_pool = init_thread_pool(t_pool_size);
     processInput(input_file);
     applyCommands(&t_pool);
     FILE *ptrf;

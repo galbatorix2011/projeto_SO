@@ -20,3 +20,4 @@ pthread_t get_pthread(thread_pool *t_pool){
 void clean_thread_pool(thread_pool *t_pool){
     free(t_pool->pool);
 }
+
