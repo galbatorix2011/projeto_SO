@@ -125,7 +125,7 @@ int create(char *name, type nodeType){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 	
-    /* mutex lock */
+    /*pthread_mutex_lock();*/
 	parent_inumber = lookup(parent_name);
 
 	if (parent_inumber == FAIL) {

@@ -6,6 +6,7 @@
 #include "fs/operations.h"
 #include "fs/thread_pool.h"
 #include <unistd.h>
+#include <time.h>
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
@@ -145,7 +146,7 @@ void * applyCommand(void *arg){
 void applyCommands(thread_pool * t_pool){
     pthread_t pid;
     while (numberCommands > 0){
-        printf("hey\n");
+        //printf("hey\n");
         pid = get_pthread(t_pool);
         numberCommands--;
         pthread_create(&pid, NULL, applyCommand, NULL);
@@ -154,6 +155,7 @@ void applyCommands(thread_pool * t_pool){
 
 
 int main(int argc, char* argv[]) {
+    clock_t begin = clock();
     /* init filesystem */
     init_fs();
 
@@ -174,5 +176,7 @@ int main(int argc, char* argv[]) {
     fclose(ptrf);
     /* release allocated memory */
     destroy_fs();
+    clock_t end = clock();
+    printf("TecnicoFS completed in %.4lf seconds.\n", (double)(end - begin)/CLOCKS_PER_SEC);
     exit(EXIT_SUCCESS);
 }
