@@ -11,7 +11,7 @@
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
 
-pthread_mutex_t mutex;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int numberThreads = 0;
 
 char inputCommands[MAX_COMMANDS][MAX_INPUT_SIZE];
