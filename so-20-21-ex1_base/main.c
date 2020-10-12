@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
     char *output_file = argv[2];
     int t_pool_size;
     clock_t begin;
+    clock_t end;
     /* init filesystem */
     init_fs();
 
@@ -175,7 +176,7 @@ int main(int argc, char* argv[]) {
 
     /* release allocated memory */
     destroy_fs();
-    clock_t end = clock();
+    end = clock();
     printf("TecnicoFS completed in %.4lf seconds.\n", (double)(end - begin)/CLOCKS_PER_SEC);
     exit(EXIT_SUCCESS);
 }
