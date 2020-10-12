@@ -155,25 +155,24 @@ void applyCommands(thread_pool * t_pool){
 
 
 int main(int argc, char* argv[]) {
-    clock_t begin = clock();
+    char *input_file = argv[1];
+    char *output_file = argv[2];
+    int t_pool_size;
+    clock_t begin;
     /* init filesystem */
     init_fs();
 
     /* process input and print tree */
-    char *input_file = argv[1];
-    char *output_file = argv[2];
-    
-    int t_pool_size;
-    sscanf(argv[3], "%d", &t_pool_size);
-
-    thread_pool t_pool = init_thread_pool(t_pool_size);
     processInput(input_file);
-    applyCommands(&t_pool);
-    FILE *ptrf;
-    ptrf = fopen(output_file,"w");
-    print_tecnicofs_tree(ptrf);
 
-    fclose(ptrf);
+    sscanf(argv[3], "%d", &t_pool_size);
+    thread_pool t_pool = init_thread_pool(t_pool_size);
+    begin = clock();
+
+    applyCommands(&t_pool);
+
+    print_tecnicofs_tree(output_file);
+
     /* release allocated memory */
     destroy_fs();
     clock_t end = clock();

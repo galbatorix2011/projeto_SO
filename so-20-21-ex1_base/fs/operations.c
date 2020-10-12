@@ -272,13 +272,13 @@ int lookup(char *name) {
 	inode_get(current_inumber, &nType, &data);
 
 	char *path = strtok(full_path, delim);
-
+	/*mutex lock*/
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		inode_get(current_inumber, &nType, &data);
 		path = strtok(NULL, delim);
 	}
-
+	/*mutex unlock*/
 	return current_inumber;
 }
 
@@ -288,6 +288,9 @@ int lookup(char *name) {
  * Input:
  *  - fp: pointer to output file
  */
-void print_tecnicofs_tree(FILE *fp){
+void print_tecnicofs_tree(char * output_file){
+	FILE *fp;
+    fp = fopen(output_file,"w");
 	inode_print_tree(fp, FS_ROOT, "");
+	fclose(fp);
 }
