@@ -43,6 +43,10 @@ void errorParse(){
 void processInput(char * input_file){
     FILE *ptrf;
     ptrf = fopen(input_file,"r");
+    if (ptrf == NULL){
+        printf("Error: could not open the input file\n");
+        exit(EXIT_FAILURE);
+    }
 
     char line[MAX_INPUT_SIZE];
 
@@ -87,7 +91,11 @@ void processInput(char * input_file){
             }
         }
     }
-    fclose(ptrf);
+
+    if (fclose(ptrf) == EOF){
+		printf("Error: could not close the output file\n");
+        exit(EXIT_FAILURE);
+	}
 }
 
 void * applyCommand(void *arg){
@@ -147,17 +155,40 @@ void applyCommands(thread_pool * t_pool){
     pthread_t pid;
     while (numberCommands > 0){
         //printf("hey\n");
-        pid = get_pthread(t_pool);
         numberCommands--;
-        pthread_create(&pid, NULL, applyCommand, NULL);
+        pid = get_pthread(t_pool);
+        if (pthread_create(&pid, NULL, applyCommand, NULL) != 0){
+            printf("Error: could not create new thread\n");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
+int verify_input(int argc, char* argv[]){
+    int t_pool_size;
+    if (argc != 4){
+        printf("Error: number of arguments invalid\n");
+        return FAIL;
+    }
+    if (sscanf(argv[3], "%d", &t_pool_size) != 1){ 
+        printf("Error: fourth argument isn't an int\n");
+        return FAIL;
+    }
+    else if (t_pool_size <= 0){
+        printf("Error: fourth argument isn't a positive int\n");
+        return FAIL;
+    }
+    return SUCCESS;
+}
 
 int main(int argc, char* argv[]) {
+    int t_pool_size;
+    if (verify_input(argc, argv) == FAIL){
+        exit(EXIT_FAILURE);
+    }
+
     char *input_file = argv[1];
     char *output_file = argv[2];
-    int t_pool_size;
     clock_t begin;
     clock_t end;
     /* init filesystem */

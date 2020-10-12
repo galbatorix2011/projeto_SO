@@ -1,6 +1,7 @@
 #include "thread_pool.h"
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
 
 thread_pool init_thread_pool(int size){
     thread_pool t_pool;

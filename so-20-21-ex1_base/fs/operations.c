@@ -187,7 +187,9 @@ int delete(char *name){
 	union Data pdata, cdata;
 
 	// a/b/c
+
 	// a/b/c
+	// a/b
 
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
@@ -201,6 +203,7 @@ int delete(char *name){
 	}
 
 	inode_get(parent_inumber, &pType, &pdata);
+
 
 	if(pType != T_DIRECTORY) {
 		printf("failed to delete %s, parent %s is not a dir\n",
@@ -282,6 +285,8 @@ int lookup(char *name) {
 	return current_inumber;
 }
 
+// delete a
+// loopkup a - correu bem
 
 /*
  * Prints tecnicofs tree.
@@ -291,6 +296,14 @@ int lookup(char *name) {
 void print_tecnicofs_tree(char * output_file){
 	FILE *fp;
     fp = fopen(output_file,"w");
+	if (fp == NULL){
+        printf("Error: could not open the output file\n");
+        exit(EXIT_FAILURE);
+    }
 	inode_print_tree(fp, FS_ROOT, "");
-	fclose(fp);
+
+	if (fclose(fp) == EOF){
+		printf("Error: could not close the output file\n");
+        exit(EXIT_FAILURE);
+	}
 }
