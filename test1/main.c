@@ -142,19 +142,24 @@ void * applyCommand(void * arg){
 }
 
 void processCommands(){
-    pthread_t pid[4];
+    int size = 4;
+    pthread_t *pid = malloc(sizeof(pthread_t) * size);
+    int j;
     int i = 0;
     int first_cicle = 1;
     while (numberCommands > 0){
-        if (first_cicle && i == 3){
+        if (first_cicle && i == (size - 1)){
             first_cicle = 0;
         }
         else if (!first_cicle){
             pthread_join(pid[i], NULL);
         }
         pthread_create(&pid[i], 0, applyCommand, NULL);
-        i = (i == 3) ? 0 : i + 1;
+        i = (i == (size - 1)) ? 0 : i + 1;
     }
+    for (j = 0; j < size; j++)
+        pthread_join(pid[j], NULL);
+    free(pid);
 }
 
 int main(int argc, char* argv[]) {
