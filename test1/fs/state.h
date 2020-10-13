@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../tecnicofs-api-constants.h"
-#include "thread_pool.h"
 
 /* FS root inode number */
 #define FS_ROOT 0

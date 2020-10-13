@@ -119,6 +119,10 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  */
 int create(char *name, type nodeType){
 
+	pthread_mutex_lock(&lock);
+	//sleep(1);
+    pthread_mutex_unlock(&lock);
+
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];
 	/* use for copy */
@@ -127,11 +131,10 @@ int create(char *name, type nodeType){
 
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
-    //pthread_mutex_lock(&lock);
+
 	parent_inumber = lookup(parent_name);
 
 	if (parent_inumber == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to create %s, invalid parent dir %s\n",
 		        name, parent_name);
 		return FAIL;
@@ -140,14 +143,12 @@ int create(char *name, type nodeType){
 	inode_get(parent_inumber, &pType, &pdata);
 
 	if(pType != T_DIRECTORY) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to create %s, parent %s is not a dir\n",
 		        name, parent_name);
 		return FAIL;
 	}
 
 	if (lookup_sub_node(child_name, pdata.dirEntries) != FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to create %s, already exists in dir %s\n",
 		       child_name, parent_name);
 		return FAIL;
@@ -156,20 +157,17 @@ int create(char *name, type nodeType){
 	/* create node and add entry to folder that contains new node */
 	child_inumber = inode_create(nodeType);
 	if (child_inumber == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to create %s in  %s, couldn't allocate inode\n",
 		        child_name, parent_name);
 		return FAIL;
 	}
 
 	if (dir_add_entry(parent_inumber, child_inumber, child_name) == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("could not add entry %s in dir %s\n",
 		       child_name, parent_name);
 		return FAIL;
 	}
 
-	//pthread_mutex_unlock(&lock);
 	return SUCCESS;
 }
 
@@ -188,15 +186,12 @@ int delete(char *name){
 	type pType, cType;
 	union Data pdata, cdata;
 
-
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	//pthread_mutex_lock(&lock);
 	parent_inumber = lookup(parent_name);
 
 	if (parent_inumber == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to delete %s, invalid parent dir %s\n",
 		        child_name, parent_name);
 		return FAIL;
@@ -205,7 +200,6 @@ int delete(char *name){
 	inode_get(parent_inumber, &pType, &pdata);
 
 	if(pType != T_DIRECTORY) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to delete %s, parent %s is not a dir\n",
 		        child_name, parent_name);
 		return FAIL;
@@ -214,7 +208,6 @@ int delete(char *name){
 	child_inumber = lookup_sub_node(child_name, pdata.dirEntries);
 
 	if (child_inumber == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("could not delete %s, does not exist in dir %s\n",
 		       name, parent_name);
 		return FAIL;
@@ -223,7 +216,6 @@ int delete(char *name){
 	inode_get(child_inumber, &cType, &cdata);
 
 	if (cType == T_DIRECTORY && is_dir_empty(cdata.dirEntries) == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("could not delete %s: is a directory and not empty\n",
 		       name);
 		return FAIL;
@@ -231,20 +223,17 @@ int delete(char *name){
 
 	/* remove entry from folder that contained deleted node */
 	if (dir_reset_entry(parent_inumber, child_inumber) == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("failed to delete %s from dir %s\n",
 		       child_name, parent_name);
 		return FAIL;
 	}
 
 	if (inode_delete(child_inumber) == FAIL) {
-		//pthread_mutex_unlock(&lock);
 		printf("could not delete inode number %d from dir %s\n",
 		       child_inumber, parent_name);
 		return FAIL;
 	}
 
-	//pthread_mutex_unlock(&lock);
 	return SUCCESS;
 }
 
@@ -274,35 +263,22 @@ int lookup(char *name) {
 	inode_get(current_inumber, &nType, &data);
 
 	char *path = strtok(full_path, delim);
-	/*mutex lock*/
+
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		inode_get(current_inumber, &nType, &data);
 		path = strtok(NULL, delim);
 	}
-	/*mutex unlock*/
+
 	return current_inumber;
 }
 
-// delete a
-// loopkup a - correu bem
 
 /*
  * Prints tecnicofs tree.
  * Input:
  *  - fp: pointer to output file
  */
-void print_tecnicofs_tree(char * output_file){
-	FILE *fp;
-    fp = fopen(output_file,"w");
-	if (fp == NULL){
-        printf("Error: could not open the output file\n");
-        exit(EXIT_FAILURE);
-    }
+void print_tecnicofs_tree(FILE *fp){
 	inode_print_tree(fp, FS_ROOT, "");
-
-	if (fclose(fp) == EOF){
-		printf("Error: could not close the output file\n");
-        exit(EXIT_FAILURE);
-	}
 }

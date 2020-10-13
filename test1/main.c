@@ -4,14 +4,13 @@
 #include <string.h>
 #include <ctype.h>
 #include "fs/operations.h"
-#include "fs/thread_pool.h"
+#include <pthread.h>
 #include <unistd.h>
-#include <time.h>
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
 
-pthread_mutex_t lock;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 int numberThreads = 0;
 
@@ -27,7 +26,7 @@ int insertCommand(char* data) {
     return 0;
 }
 
-char* getCommand() {
+char* removeCommand() {
     if(numberCommands > 0){
         numberCommands--;
         return inputCommands[headQueue++];  
@@ -40,19 +39,13 @@ void errorParse(){
     exit(EXIT_FAILURE);
 }
 
-/* alterar para ler de um ficheiro*/
-void processInput(char * input_file){
-    FILE *ptrf;
-    ptrf = fopen(input_file,"r");
-    if (ptrf == NULL){
-        printf("Error: could not open the input file\n");
-        exit(EXIT_FAILURE);
-    }
-
+void processInput(){
     char line[MAX_INPUT_SIZE];
 
     /* break loop with ^Z or ^D */
-    while (fgets(line, sizeof(line)/sizeof(char), ptrf)) {
+    while (fgets(line, sizeof(line)/sizeof(char), stdin)) {
+        if (line[0] == 'X')
+            break;
         char token, type;
         char name[MAX_INPUT_SIZE];
 
@@ -92,25 +85,18 @@ void processInput(char * input_file){
             }
         }
     }
-
-    if (fclose(ptrf) == EOF){
-		printf("Error: could not close the output file\n");
-        exit(EXIT_FAILURE);
-	}
 }
 
-void * applyCommand(void *arg){
-
-
+void * applyCommand(void * arg){
     pthread_mutex_lock(&lock);
-    char* command = getCommand();
-    sleep(1);
+	const char* command = removeCommand();
     pthread_mutex_unlock(&lock);
-    
+
     if (command == NULL){
-        printf("hi\n");
+        printf("fodeu\n");
         return NULL;
     }
+
     char token, type;
     char name[MAX_INPUT_SIZE];
     int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
@@ -137,9 +123,7 @@ void * applyCommand(void *arg){
             }
             break;
         case 'l': 
-            //pthread_mutex_lock(&lock);
             searchResult = lookup(name);
-            //pthread_mutex_unlock(&lock);
             if (searchResult >= 0)
                 printf("Search: %s found\n", name);
             else
@@ -154,70 +138,35 @@ void * applyCommand(void *arg){
             exit(EXIT_FAILURE);
         }
     }
-    
     return NULL;
 }
 
-void applyCommands(int t_pool_size){
-    pthread_mutex_init(&lock, NULL);
-    thread_pool t_pool = init_thread_pool(t_pool_size);
-    pthread_t pid;
+void processCommands(){
+    pthread_t pid[4];
+    int i = 0;
+    int first_cicle = 1;
     while (numberCommands > 0){
-        //printf("hey\n");
-        pid = get_pthread(&t_pool);
-        if (pthread_create(&pid, NULL, applyCommand, NULL) != 0){
-            printf("Error: could not create new thread\n");
-            exit(EXIT_FAILURE);
+        if (first_cicle && i == 3){
+            first_cicle = 0;
         }
+        else if (!first_cicle){
+            pthread_join(pid[i], NULL);
+        }
+        pthread_create(&pid[i], 0, applyCommand, NULL);
+        i = (i == 3) ? 0 : i + 1;
     }
-    clean_thread_pool(&t_pool);
-}
-
-int verify_input(int argc, char* argv[]){
-    int t_pool_size;
-    if (argc != 4){
-        printf("Error: number of arguments invalid\n");
-        return FAIL;
-    }
-    if (sscanf(argv[3], "%d", &t_pool_size) != 1){ 
-        printf("Error: fourth argument isn't an int\n");
-        return FAIL;
-    }
-    else if (t_pool_size <= 0){
-        printf("Error: fourth argument isn't a positive int\n");
-        return FAIL;
-    }
-    return SUCCESS;
 }
 
 int main(int argc, char* argv[]) {
-    int t_pool_size;
-    if (verify_input(argc, argv) == FAIL){
-        exit(EXIT_FAILURE);
-    }
-
-    char *input_file = argv[1];
-    char *output_file = argv[2];
-    clock_t begin;
-    clock_t end;
     /* init filesystem */
     init_fs();
 
     /* process input and print tree */
-    processInput(input_file);
-
-    sscanf(argv[3], "%d", &t_pool_size);
-    begin = clock();
-
-    applyCommands(t_pool_size);
-
-
-    print_tecnicofs_tree(output_file);
+    processInput();
+    processCommands();
+    print_tecnicofs_tree(stdout);
 
     /* release allocated memory */
-
     destroy_fs();
-    end = clock();
-    printf("TecnicoFS completed in %.4lf seconds.\n", (double)(end - begin)/CLOCKS_PER_SEC);
     exit(EXIT_SUCCESS);
 }
