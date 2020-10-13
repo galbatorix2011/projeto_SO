@@ -39,11 +39,18 @@ void errorParse(){
     exit(EXIT_FAILURE);
 }
 
-void processInput(){
+void processInput(char * input_file){
+    FILE *ptrf;
+    ptrf = fopen(input_file,"r");
+    if (ptrf == NULL){
+        fprintf(stderr,"Error: could not open the input file\n");
+        exit(EXIT_FAILURE);
+    }
+
     char line[MAX_INPUT_SIZE];
 
     /* break loop with ^Z or ^D */
-    while (fgets(line, sizeof(line)/sizeof(char), stdin)) {
+    while (fgets(line, sizeof(line)/sizeof(char), ptrf)) {
         if (line[0] == 'X')
             break;
         char token, type;
@@ -85,15 +92,20 @@ void processInput(){
             }
         }
     }
+    if (fclose(ptrf) == EOF){
+        printf("Error: could not close the output file\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
-void * applyCommand(void * arg){
+void * applyCommand(){
+    /*debug*/
+
     pthread_mutex_lock(&lock);
 	const char* command = removeCommand();
     pthread_mutex_unlock(&lock);
 
     if (command == NULL){
-        printf("fodeu\n");
         return NULL;
     }
 
@@ -141,35 +153,61 @@ void * applyCommand(void * arg){
     return NULL;
 }
 
-void processCommands(){
-    int size = 4;
-    pthread_t *pid = malloc(sizeof(pthread_t) * size);
+void processCommands(int t_pool_size){
+    pthread_mutex_init(&lock, NULL);
+    pthread_t *pid = malloc(sizeof(pthread_t) * t_pool_size);
     int j;
     int i = 0;
     int first_cicle = 1;
     while (numberCommands > 0){
-        if (first_cicle && i == (size - 1)){
+        if (first_cicle && i == (t_pool_size - 1)){
             first_cicle = 0;
         }
         else if (!first_cicle){
-            pthread_join(pid[i], NULL);
+            if(pthread_join(pid[i], NULL) != 0)
+                fprintf(stderr, "Error: could not join thread\n");
         }
-        pthread_create(&pid[i], 0, applyCommand, NULL);
-        i = (i == (size - 1)) ? 0 : i + 1;
+        if (pthread_create(&pid[i], 0, applyCommand, NULL) != 0)
+            fprintf(stderr, "Error: could not create thread\n");
+        i = (i == (t_pool_size - 1)) ? 0 : i + 1;
     }
-    for (j = 0; j < size; j++)
+    for (j = 0; j < t_pool_size; j++)
         pthread_join(pid[j], NULL);
     free(pid);
 }
 
+void verify_input(int argc, char* argv[]){
+    int t_pool_size;
+    if (argc != 4){
+        fprintf(stderr,"Error: number of arguments invalid\n");
+        exit(EXIT_FAILURE);
+    }
+    if (sscanf(argv[3], "%d", &t_pool_size) != 1){ 
+       fprintf(stderr,"Error: fourth argument isn't an int\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (t_pool_size <= 0){
+        fprintf(stderr,"Error: fourth argument isn't a positive int\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char* argv[]) {
+    char *input_file = argv[1];
+    char *output_file = argv[2];
+    int t_pool_size;
+
+    verify_input(argc, argv);
     /* init filesystem */
+    
     init_fs();
 
     /* process input and print tree */
-    processInput();
-    processCommands();
-    print_tecnicofs_tree(stdout);
+    processInput(input_file);
+
+    sscanf(argv[3], "%d", &t_pool_size);
+    processCommands(t_pool_size);
+    print_tecnicofs_tree(output_file);
 
     /* release allocated memory */
     destroy_fs();

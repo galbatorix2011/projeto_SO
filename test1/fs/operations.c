@@ -277,8 +277,19 @@ int lookup(char *name) {
 /*
  * Prints tecnicofs tree.
  * Input:
- *  - fp: pointer to output file
+ *  - output_file: path to the output file
  */
-void print_tecnicofs_tree(FILE *fp){
+void print_tecnicofs_tree(char * output_file){
+	FILE *fp;
+    fp = fopen(output_file,"w");
+	if (fp == NULL){
+        printf("Error: could not open the output file\n");
+        exit(EXIT_FAILURE);
+    }
 	inode_print_tree(fp, FS_ROOT, "");
+
+	if (fclose(fp) == EOF){
+		printf("Error: could not close the output file\n");
+        exit(EXIT_FAILURE);
+	}
 }
