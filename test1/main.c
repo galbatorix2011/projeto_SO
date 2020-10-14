@@ -7,6 +7,7 @@
 #include "fs/pthread_operations.h"
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
 
 #define MAX_COMMANDS 150000
@@ -14,6 +15,8 @@
 
 pthread_mutex_t command_lock;
 type_lock t_lock;
+
+struct timespec begin, end;
 
 int numberThreads = 0;
 
@@ -137,12 +140,14 @@ void * applyCommand(){
                     exit(EXIT_FAILURE);
             }
             break;
-        case 'l': 
+        case 'l':
+            latch_lock(t_lock, L_READ);
             searchResult = lookup(name);
             if (searchResult >= 0)
                 printf("Search: %s found\n", name);
             else
                 printf("Search: %s not found\n", name);
+            latch_unlock(t_lock);
             break;
         case 'd':
             printf("Delete: %s\n", name);
@@ -158,8 +163,9 @@ void * applyCommand(){
 
 void processCommands(int t_pool_size){
     pthread_mutex_init(&command_lock, NULL);
-    init_latch(L_MUTEX);
+    init_latch(t_lock);
     pthread_t *pid = malloc(sizeof(pthread_t) * t_pool_size);
+    clock_gettime(CLOCK_REALTIME, &begin);
     int j;
     int i = 0;
     int first_cicle = 1;
@@ -178,6 +184,8 @@ void processCommands(int t_pool_size){
     for (j = 0; j < t_pool_size; j++)
         pthread_join(pid[j], NULL);
     free(pid);
+    destroy_latch(t_lock);
+    pthread_mutex_destroy(&command_lock);
 }
 
 void verify_input(int argc, char* argv[]){
@@ -201,11 +209,14 @@ void verify_input(int argc, char* argv[]){
     else if (strcmp("nosync", argv[4]) == 0){
         if (t_pool_size != 1){
             fprintf(stderr,"Error: Lock type is nosync but there is more than one thread\n");
-            t_lock = L_NONE;
+            exit(EXIT_FAILURE);
         }
+        t_lock = L_NONE;
     }
-    else
-        fprintf(stderr,"Error: wrong input for sync type\n");        
+    else{
+        fprintf(stderr,"Error: wrong input for sync type\n");
+        exit(EXIT_FAILURE);
+    }   
 }
 
 int main(int argc, char* argv[]) {
@@ -227,6 +238,11 @@ int main(int argc, char* argv[]) {
 
     /* release allocated memory */
     destroy_fs();
+
+    clock_gettime(CLOCK_REALTIME, &end);
+    double elapsed = ( end.tv_sec - begin.tv_sec ) + (double)( end.tv_nsec - begin.tv_nsec ) / 1000000000L;
+    
+    printf("TecnicoFS completed in %.4f seconds.\n", elapsed);
     exit(EXIT_SUCCESS);
 }
 
