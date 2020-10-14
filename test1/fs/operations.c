@@ -1,11 +1,11 @@
 #include "operations.h"
+#include "pthread_operations.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
 
-extern pthread_mutex_t lock;
 
 /* Given a path, fills pointers with strings for the parent path and child
  * file name
@@ -15,7 +15,6 @@ extern pthread_mutex_t lock;
  *  - child: reference to a char*, to store child file name
  */
 void split_parent_child_from_path(char * path, char ** parent, char ** child) {
-
 	int n_slashes = 0, last_slash_location = 0;
 	int len = strlen(path);
 
@@ -119,9 +118,7 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  */
 int create(char *name, type nodeType){
 
-	pthread_mutex_lock(&lock);
 	//sleep(1);
-    pthread_mutex_unlock(&lock);
 
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];

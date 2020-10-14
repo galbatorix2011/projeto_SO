@@ -104,7 +104,6 @@ void * applyCommand(void *arg){
 
     pthread_mutex_lock(&lock);
     char* command = getCommand();
-    sleep(1);
     pthread_mutex_unlock(&lock);
     
     if (command == NULL){

@@ -4,13 +4,16 @@
 #include <string.h>
 #include <ctype.h>
 #include "fs/operations.h"
+#include "fs/pthread_operations.h"
 #include <pthread.h>
 #include <unistd.h>
+
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t command_lock;
+type_lock t_lock;
 
 int numberThreads = 0;
 
@@ -101,9 +104,9 @@ void processInput(char * input_file){
 void * applyCommand(){
     /*debug*/
 
-    pthread_mutex_lock(&lock);
+    pthread_mutex_lock(&command_lock);
 	const char* command = removeCommand();
-    pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&command_lock);
 
     if (command == NULL){
         return NULL;
@@ -154,7 +157,8 @@ void * applyCommand(){
 }
 
 void processCommands(int t_pool_size){
-    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&command_lock, NULL);
+    init_latch(L_MUTEX);
     pthread_t *pid = malloc(sizeof(pthread_t) * t_pool_size);
     int j;
     int i = 0;
@@ -178,7 +182,7 @@ void processCommands(int t_pool_size){
 
 void verify_input(int argc, char* argv[]){
     int t_pool_size;
-    if (argc != 4){
+    if (argc != 5){
         fprintf(stderr,"Error: number of arguments invalid\n");
         exit(EXIT_FAILURE);
     }
@@ -190,6 +194,18 @@ void verify_input(int argc, char* argv[]){
         fprintf(stderr,"Error: fourth argument isn't a positive int\n");
         exit(EXIT_FAILURE);
     }
+    if (strcmp("mutex", argv[4]) == 0)
+        t_lock = L_MUTEX;
+    else if (strcmp("rwlock", argv[4]) == 0)
+        t_lock = L_RW;
+    else if (strcmp("nosync", argv[4]) == 0){
+        if (t_pool_size != 1){
+            fprintf(stderr,"Error: Lock type is nosync but there is more than one thread\n");
+            t_lock = L_NONE;
+        }
+    }
+    else
+        fprintf(stderr,"Error: wrong input for sync type\n");        
 }
 
 int main(int argc, char* argv[]) {
@@ -213,3 +229,10 @@ int main(int argc, char* argv[]) {
     destroy_fs();
     exit(EXIT_SUCCESS);
 }
+
+
+
+
+
+
+
