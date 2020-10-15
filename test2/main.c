@@ -196,7 +196,7 @@ void threads_initializer(int t_pool_size){
     init_latches(t_lock);
     pthread_t *pid = malloc(sizeof(pthread_t) * t_pool_size);
 
-    /*thread pool initiated*/
+    /*thread pool initiazed*/
     for (i = 0; i < t_pool_size; i++){
         if (pthread_create(&pid[i], 0, applyCommands, NULL) != 0){
             fprintf(stderr, "Error: could not create thread\n");
