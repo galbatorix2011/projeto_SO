@@ -9,6 +9,12 @@ pthread_mutex_t command_lock;
 pthread_mutex_t mutex_lock;
 pthread_rwlock_t rw_lock;
 
+/*
+* Inicializes the latches with type of lock in input and the mutex that will lock
+*   variables related with inputComands
+* Input:
+*   -lock_type: type of lock in input (mutex, rw_lock or none)
+*/
 void init_latches(type_lock lock_type){
     if (lock_type == L_MUTEX){
         if (pthread_mutex_init(&mutex_lock, NULL) != 0){
@@ -28,6 +34,11 @@ void init_latches(type_lock lock_type){
     }
 }
 
+/*
+* Aplies the type of lock that the user chose 
+* Input:
+*   -lock_type: type of lock in input (mutex, rw_lock or none)
+*/
 void latch_lock(type_lock lock_type, rw_type rwl_type){
     if (lock_type == L_MUTEX){
         if (pthread_mutex_lock(&mutex_lock) != 0){
@@ -50,7 +61,11 @@ void latch_lock(type_lock lock_type, rw_type rwl_type){
         }
     }
 }
-
+/*
+* Unlocks the type of lock that the user chose 
+* Input:
+*   -lock_type: type of lock in input (mutex, rw_lock or none)
+*/
 void latch_unlock(type_lock lock_type){
     if (lock_type == L_MUTEX){
         if (pthread_mutex_unlock(&mutex_lock) != 0) {
@@ -65,7 +80,11 @@ void latch_unlock(type_lock lock_type){
         }
     }
 }
-
+/*
+* Free memory releted to locks
+* Input:
+*   -lock_type: type of lock in input (mutex, rw_lock or none)
+*/
 void destroy_latches(type_lock lock_type){
     if (lock_type == L_MUTEX){
         if (pthread_mutex_destroy(&mutex_lock) != 0){
@@ -85,6 +104,9 @@ void destroy_latches(type_lock lock_type){
     }
 }
 
+/*
+* Aplies lock to variables related with inputComands
+*/
 void command_mutex_lock(){
     if (pthread_mutex_lock(&command_lock) != 0){
         fprintf(stderr, "Error: could not lock mutex\n");
@@ -92,6 +114,9 @@ void command_mutex_lock(){
     }
 }
 
+/*
+* Unlocksls variables related with inputComands
+*/
 void command_mutex_unlock(){
     if (pthread_mutex_unlock(&command_lock) != 0){
         fprintf(stderr, "Error: could not unlock mutex\n");
