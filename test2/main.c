@@ -161,7 +161,7 @@ void * applyCommands(){
                  * and therefore it can't be locked from the inside
                  */
                 latch_lock(t_lock, L_READ);
-                searchResult = lookup(name);                
+                searchResult = lookup(name);               
                 latch_unlock(t_lock);
                 if (searchResult >= 0)
                     printf("Search: %s found\n", name);

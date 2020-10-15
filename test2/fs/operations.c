@@ -195,8 +195,10 @@ int delete(char *name){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	latch_lock(t_lock, L_WRITE);
+   	
 
+
+	latch_lock(t_lock, L_WRITE);
 
 	parent_inumber = lookup(parent_name);
 
@@ -220,8 +222,7 @@ int delete(char *name){
 
 	if (child_inumber == FAIL) {
 		latch_unlock(t_lock);
-		printf("could not delete %s, does not exist in dir %s\n",
-		       name, parent_name);
+		printf("could not delete %s, does not exist in dir %s\n", name, parent_name);
 		return FAIL;
 	}
 
@@ -229,8 +230,7 @@ int delete(char *name){
 
 	if (cType == T_DIRECTORY && is_dir_empty(cdata.dirEntries) == FAIL) {
 		latch_unlock(t_lock);
-		printf("could not delete %s: is a directory and not empty\n",
-		       name);
+		printf("could not delete %s: is a directory and not empty\n", name);
 		return FAIL;
 	}
 
