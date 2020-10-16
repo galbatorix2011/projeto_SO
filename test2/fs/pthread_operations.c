@@ -10,8 +10,8 @@ pthread_mutex_t mutex_lock;
 pthread_rwlock_t rw_lock;
 
 /*
-* Inicializes the latches with type of lock in input and the mutex that will lock
-*   variables related with inputComands
+* Inicializes the latches with the type of lock received in input
+* and the mutex that will lock variables related with inputComands
 * Input:
 *   -lock_type: type of lock in input (mutex, rw_lock or none)
 */
@@ -61,6 +61,7 @@ void latch_lock(type_lock lock_type, rw_type rwl_type){
         }
     }
 }
+
 /*
 * Unlocks the type of lock that the user chose 
 * Input:
@@ -80,8 +81,9 @@ void latch_unlock(type_lock lock_type){
         }
     }
 }
+
 /*
-* Free memory releted to locks
+* Desstroys the lock the user chose
 * Input:
 *   -lock_type: type of lock in input (mutex, rw_lock or none)
 */
@@ -115,7 +117,7 @@ void command_mutex_lock(){
 }
 
 /*
-* Unlocksls variables related with inputComands
+* Unlocks variables related with inputComands
 */
 void command_mutex_unlock(){
     if (pthread_mutex_unlock(&command_lock) != 0){

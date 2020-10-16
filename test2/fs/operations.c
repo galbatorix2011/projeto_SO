@@ -19,7 +19,7 @@ extern type_lock t_lock;
 void split_parent_child_from_path(char * path, char ** parent, char ** child) {
 	int n_slashes = 0, last_slash_location = 0;
 	int len = strlen(path);
-
+	
 	// deal with trailing slash ( a/x vs a/x/ )
 	if (path[len-1] == '/') {
 		path[len-1] = '\0';
@@ -130,6 +130,11 @@ int create(char *name, type nodeType){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
+	/*
+	* The funtion is locked from this point because once
+	* the father is found, it cannot be destroyed until
+	* its child is created
+	*/
 	latch_lock(t_lock, L_WRITE);
 
 	parent_inumber = lookup(parent_name);
@@ -195,8 +200,12 @@ int delete(char *name){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-   	
-
+	/*
+	* The funtion is locked from this point because once
+	* the father is found, there cannot be a scenario where its child
+	* and then the father is destroyed before the existence followed by
+	* the delete of the child takes place
+	*/
 
 	latch_lock(t_lock, L_WRITE);
 
