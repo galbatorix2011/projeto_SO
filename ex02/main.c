@@ -15,7 +15,6 @@
 
 /* global variables */
 
-type_lock t_lock;
 
 struct timespec begin, end;
 
@@ -121,6 +120,7 @@ void * applyCommands() {
 	* The beggining of each loop must be locked so
 	* the reading of numberComands can be done safely
 	*/
+	locked_stack * stack = create_locked_stack();
 	command_mutex_lock();
 	while (numberCommands > 0) {
 		command_mutex_unlock();
@@ -147,11 +147,11 @@ void * applyCommands() {
 				switch (type) {
 					case 'f':
 						printf("Create file: %s\n",name);
-						create(name, T_FILE);
+						create(name, T_FILE, stack);
 						break;
 					case 'd':
 						printf("Create directory: %s\n", name);
-						create(name, T_DIRECTORY);
+						create(name, T_DIRECTORY, stack);
 						break;
 					default:
 						fprintf(stderr, "Error: invalid node type\n");
@@ -164,9 +164,10 @@ void * applyCommands() {
 				* used in the fucntions create and delete from operations
 				* which also lock the function loopup form the outside
 				*/
-				latch_lock(t_lock, L_READ);
-				searchResult = lookup(name);               
-				latch_unlock(t_lock);
+				printf("hey\n");
+				searchResult = lookup(name, stack, F_READ);
+				printf("hi\n");
+				unlock_locked_stack(stack);              
 				if (searchResult >= 0)
 					printf("Search: %s found\n", name);
 				else
@@ -174,7 +175,7 @@ void * applyCommands() {
 				break;
 			case 'd':
 				printf("Delete: %s\n", name);
-				delete (name);
+				delete(name, stack);
 				break;
 			default:
 				/* error */
@@ -185,7 +186,7 @@ void * applyCommands() {
 		command_mutex_lock();
 	}
 	/* unlocked is used since it didn't get intside the while loop and so the lock is still active */
-	command_mutex_unlock();
+	delete_locked_stack(stack);
 	return NULL;
 }
 
@@ -198,7 +199,7 @@ void * applyCommands() {
 void threads_initializer(int t_pool_size) {
 	int i;
 	
-	init_latches(t_lock);
+	init_latches();
 	pthread_t *pid = malloc(sizeof(pthread_t) * t_pool_size);
 
 	/* thread pool initiazed */
@@ -222,9 +223,8 @@ void threads_initializer(int t_pool_size) {
 			exit(EXIT_FAILURE);    
 		}
 	}
-
 	free(pid);
-	destroy_latches(t_lock);
+	destroy_latches();
 }
 
 
@@ -238,35 +238,19 @@ void threads_initializer(int t_pool_size) {
 void verify_input(int argc, char* argv[]) {
 	int t_pool_size;
 	
-	if (argc != 5) {
+	if (argc != 4) {
 		fprintf(stderr,"Error: number of arguments invalid\n");
 		exit(EXIT_FAILURE);
 	}
 
 	if (sscanf(argv[3], "%d", &t_pool_size) != 1) { 
-		fprintf(stderr,"Error: fourth argument isn't an int\n");
+		fprintf(stderr,"Error: third argument isn't an int\n");
 		exit(EXIT_FAILURE);
 	}
 	else if (t_pool_size <= 0) {
-		fprintf(stderr,"Error: fourth argument isn't a positive int\n");
+		fprintf(stderr,"Error: third argument isn't a positive int\n");
 		exit(EXIT_FAILURE);
-	}
-
-	if (strcmp("mutex", argv[4]) == 0)
-		 t_lock = L_MUTEX;
-	else if (strcmp("rwlock", argv[4]) == 0)
-		t_lock = L_RW;
-	else if (strcmp("nosync", argv[4]) == 0) {
-		if (t_pool_size != 1) {
-			fprintf(stderr,"Error: Lock type is nosync but there is more than one thread\n");
-			exit(EXIT_FAILURE);
-		}
-		t_lock = L_NONE;
-	}
-	else {
-		fprintf(stderr,"Error: wrong input for sync type\n");
-		exit(EXIT_FAILURE);
-	}   
+	}  
 }
 
 int main(int argc, char* argv[]) {
@@ -284,10 +268,6 @@ int main(int argc, char* argv[]) {
 
 	sscanf(argv[3], "%d", &t_pool_size);
 	threads_initializer(t_pool_size);
-	print_tecnicofs_tree(output_file);
-
-	/* release allocated memory */
-	destroy_fs();
 
 	/* calculate the time elapsed */
 	if (clock_gettime(CLOCK_REALTIME, &end) != 0){
@@ -295,14 +275,13 @@ int main(int argc, char* argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	double time_elapsed = (end.tv_sec - begin.tv_sec) + (double)(end.tv_nsec - begin.tv_nsec) / 1000000000L;
-	 
 	printf("TecnicoFS completed in %.4f seconds.\n", time_elapsed);
+	
+	print_tecnicofs_tree(output_file);
+
+	/* release allocated memory */
+	destroy_fs();
+	 
+
 	exit(EXIT_SUCCESS);
 }
-
-
-
-
-
-
-

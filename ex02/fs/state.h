@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "../tecnicofs-api-constants.h"
-#include "thread_pool.h"
 
 /* FS root inode number */
 #define FS_ROOT 0
@@ -40,10 +40,12 @@ union Data {
  */
 typedef struct inode_t {    
 	type nodeType;
+	pthread_rwlock_t lock;
 	union Data data;
     /* more i-node attributes will be added in future exercises */
 } inode_t;
 
+inode_t inode_table[INODE_TABLE_SIZE];
 
 void insert_delay(int cycles);
 void inode_table_init();

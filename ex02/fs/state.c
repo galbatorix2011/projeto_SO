@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include "state.h"
 #include "../tecnicofs-api-constants.h"
+#include "pthread_operations.h"
 
-inode_t inode_table[INODE_TABLE_SIZE];
 
 
 /*
@@ -53,11 +53,15 @@ void inode_table_destroy() {
 int inode_create(type nType) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
-
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
+        if (inumber != FS_ROOT)
+            inode_create_lock();    
         if (inode_table[inumber].nodeType == T_NONE) {
             inode_table[inumber].nodeType = nType;
-
+            if (pthread_rwlock_init(&inode_table[inumber].lock, NULL) != 0){
+                fprintf(stderr, "Error: could not initialize lock\n");
+                exit(EXIT_FAILURE);
+            }
             if (nType == T_DIRECTORY) {
                 /* Initializes entry table */
                 inode_table[inumber].data.dirEntries = malloc(sizeof(DirEntry) * MAX_DIR_ENTRIES);
@@ -69,8 +73,12 @@ int inode_create(type nType) {
             else {
                 inode_table[inumber].data.fileContents = NULL;
             }
+            if (inumber != FS_ROOT)
+                inode_create_unlock();
             return inumber;
         }
+        if (inumber != FS_ROOT)
+            inode_create_unlock();
     }
     return FAIL;
 }
@@ -91,6 +99,12 @@ int inode_delete(int inumber) {
     } 
 
     inode_table[inumber].nodeType = T_NONE;
+    
+    if(pthread_rwlock_destroy(&inode_table[inumber].lock) != 0){
+        fprintf(stderr, "Error: could not destroy lock\n");
+        exit(EXIT_FAILURE);
+    }
+
     /* see inode_table_destroy function */
     if (inode_table[inumber].data.dirEntries)
         free(inode_table[inumber].data.dirEntries);
