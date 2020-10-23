@@ -25,8 +25,8 @@ void queue_locked_stack(locked_stack * stack, int inumber);
 void unlock_locked_stack(locked_stack * stack);
 
 void init_latches();
-void latch_lock(int inumber, rw_type rwl_type);
-void latch_unlock(int inumber);
+void latch_lock(int, rw_type rwl_type);
+void latch_unlock(int);
 void destroy_latches();
 void command_mutex_lock();
 void command_mutex_unlock();

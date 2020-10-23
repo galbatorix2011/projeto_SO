@@ -15,7 +15,6 @@
 
 /* global variables */
 
-
 struct timespec begin, end;
 
 int numberThreads = 0;
@@ -164,8 +163,8 @@ void * applyCommands() {
 				* used in the fucntions create and delete from operations
 				* which also lock the function loopup form the outside
 				*/
-				searchResult = lookup(name, stack, F_READ);
-				unlock_locked_stack(stack);              
+				searchResult = lookup(name, stack, F_READ);  
+				unlock_locked_stack(stack);             
 				if (searchResult >= 0)
 					printf("Search: %s found\n", name);
 				else
@@ -173,8 +172,7 @@ void * applyCommands() {
 				break;
 			case 'd':
 				printf("Delete: %s\n", name);
-				delete(name, stack);
-				printf("huray!\n");
+				delete (name, stack);
 				break;
 			default:
 				/* error */
@@ -186,6 +184,7 @@ void * applyCommands() {
 	}
 	/* unlocked is used since it didn't get intside the while loop and so the lock is still active */
 	delete_locked_stack(stack);
+	command_mutex_unlock();
 	return NULL;
 }
 
@@ -222,9 +221,9 @@ void threads_initializer(int t_pool_size) {
 			exit(EXIT_FAILURE);    
 		}
 	}
+
 	free(pid);
-	printf("done!\n");
-	//destroy_latches();
+	destroy_latches();
 }
 
 
@@ -250,7 +249,7 @@ void verify_input(int argc, char* argv[]) {
 	else if (t_pool_size <= 0) {
 		fprintf(stderr,"Error: third argument isn't a positive int\n");
 		exit(EXIT_FAILURE);
-	}  
+	}
 }
 
 int main(int argc, char* argv[]) {

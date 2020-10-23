@@ -140,6 +140,5 @@ void unlock_locked_stack(locked_stack * stack){
     int inumber;
     while ((inumber = dequeue_locked_stack(stack)) != EMPTY_STACK){
         latch_unlock(inumber);
-        //printf("%d\n", inumber);
     }
 }

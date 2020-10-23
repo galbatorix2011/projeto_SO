@@ -53,14 +53,17 @@ void inode_table_destroy() {
 int inode_create(type nType) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
+
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
+
         if (inumber != FS_ROOT)
-            inode_create_lock();    
+            inode_create_lock();
+
         if (inode_table[inumber].nodeType == T_NONE) {
             inode_table[inumber].nodeType = nType;
 
             if (pthread_rwlock_init(&inode_table[inumber].lock, NULL) != 0){
-                fprintf(stderr, "Error: could not initialize lock\n");
+                fprintf(stderr, "Error: could not init lock\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -75,12 +78,16 @@ int inode_create(type nType) {
             else {
                 inode_table[inumber].data.fileContents = NULL;
             }
+
             if (inumber != FS_ROOT)
                 inode_create_unlock();
+
             return inumber;
         }
+
         if (inumber != FS_ROOT)
             inode_create_unlock();
+
     }
     return FAIL;
 }
@@ -98,16 +105,14 @@ int inode_delete(int inumber) {
     if ((inumber < 0) || (inumber > INODE_TABLE_SIZE) || (inode_table[inumber].nodeType == T_NONE)) {
         printf("inode_delete: invalid inumber\n");
         return FAIL;
-    }
-    //pthread_rwlock_unlock(&inode_table[inumber].lock);
-    if(pthread_rwlock_destroy(&inode_table[inumber].lock) != 0){
+    } 
+
+    if (pthread_rwlock_destroy(&inode_table[inumber].lock) != 0){
         fprintf(stderr, "Error: could not destroy lock\n");
         exit(EXIT_FAILURE);
     }
-
-    inode_table[inumber].nodeType = T_NONE;
     
-
+    inode_table[inumber].nodeType = T_NONE;
     /* see inode_table_destroy function */
     if (inode_table[inumber].data.dirEntries)
         free(inode_table[inumber].data.dirEntries);

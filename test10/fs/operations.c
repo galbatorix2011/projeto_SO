@@ -117,8 +117,8 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  *  - nodeType: type of node
  * Returns: SUCCESS or FAIL
  */
-int create(char *name, type nodeType, locked_stack *stack){
-	printf("%s\n", name);
+int create(char *name, type nodeType, locked_stack * stack){
+
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];
 	/* use for copy */
@@ -134,11 +134,10 @@ int create(char *name, type nodeType, locked_stack *stack){
 	* its child is created
 	*/
 
-	printf("%s\n",parent_name);
-	printf("%s\n",child_name);
 	parent_inumber = lookup(parent_name, stack, F_WRITE);
 
 	if (parent_inumber == FAIL) {
+		unlock_locked_stack(stack);
 		printf("failed to create %s, invalid parent dir %s\n",
 		        name, parent_name);
 		return FAIL;
@@ -162,6 +161,7 @@ int create(char *name, type nodeType, locked_stack *stack){
 
 	/* create node and add entry to folder that contains new node */
 	child_inumber = inode_create(nodeType);
+	
 	if (child_inumber == FAIL) {
 		unlock_locked_stack(stack);
 		printf("failed to create %s in  %s, couldn't allocate inode\n",
@@ -175,7 +175,6 @@ int create(char *name, type nodeType, locked_stack *stack){
 		       child_name, parent_name);
 		return FAIL;
 	}
-
 	unlock_locked_stack(stack);
 	return SUCCESS;
 }
@@ -205,6 +204,7 @@ int delete(char *name, locked_stack * stack){
 	* the delete of the child takes place
 	*/
 
+
 	parent_inumber = lookup(parent_name, stack, F_WRITE);
 
 	if (parent_inumber == FAIL) {
@@ -226,7 +226,7 @@ int delete(char *name, locked_stack * stack){
 	child_inumber = lookup_sub_node(child_name, pdata.dirEntries);
 
 	if (child_inumber == FAIL) {
-		unlock_locked_stack(stack);
+		unlock_locked_stack(stack);		
 		printf("could not delete %s, does not exist in dir %s\n", name, parent_name);
 		return FAIL;
 	}
@@ -253,9 +253,7 @@ int delete(char *name, locked_stack * stack){
 		       child_inumber, parent_name);
 		return FAIL;
 	}
-
 	unlock_locked_stack(stack);
-
 	return SUCCESS;
 }
 
@@ -268,23 +266,23 @@ int delete(char *name, locked_stack * stack){
  *  inumber: identifier of the i-node, if found
  *     FAIL: otherwise
  */
-int lookup(char *name, locked_stack * stack, func_type f_type) {
-	printf("%s", name);
+int lookup(char *name, locked_stack *stack, func_type f_type) {
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
+
 	strcpy(full_path, name);
 
 	char *path = strtok(full_path, delim);
-	if (path == NULL && f_type == F_WRITE){
+
+	if (path == NULL && f_type == F_WRITE)
 		latch_lock(FS_ROOT, L_WRITE);
-	}
-	else{
+	else
 		latch_lock(FS_ROOT, L_READ);
-	}
 	queue_locked_stack(stack, FS_ROOT);
+
 	/* start at root node */
 	int current_inumber = FS_ROOT;
-	//printf("%d\n", current_inumber);
+
 	/* use for copy */
 	type nType;
 	union Data data;
@@ -292,18 +290,18 @@ int lookup(char *name, locked_stack * stack, func_type f_type) {
 	/* get root inode data */
 	inode_get(current_inumber, &nType, &data);
 
+
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		path = strtok(NULL, delim);
 		if (path == NULL && f_type == F_WRITE)
 			latch_lock(current_inumber, L_WRITE);
-		else{
+		else
 			latch_lock(current_inumber, L_READ);
-		}
-		queue_locked_stack(stack, FS_ROOT);
-		printf("%d\n", current_inumber);
+		queue_locked_stack(stack, current_inumber);
 		inode_get(current_inumber, &nType, &data);
 	}
+
 	return current_inumber;
 }
 
