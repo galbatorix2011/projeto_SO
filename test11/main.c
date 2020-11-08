@@ -10,8 +10,12 @@
 #include <time.h>
 
 
-#define MAX_COMMANDS 150000
+#define MAX_COMMANDS 10
 #define MAX_INPUT_SIZE 100
+
+pthread_mutex_t OLA;
+int producePtr = 0, consumePtr = 0, count = 0, endOfFile = 0;
+pthread_cond_t canProd, canCons; 
 
 /* global variables */
 
@@ -25,26 +29,28 @@ int headQueue = 0;
 
 /*---------------------*/
 
-int insertCommand(char* data) {
-	if(numberCommands != MAX_COMMANDS) {
-		strcpy(inputCommands[numberCommands++], data);
-		return 1;
-	}
-	return 0;
+void insertCommand(char* data) {
+	pthread_mutex_lock(&OLA);
+	while(count == MAX_COMMANDS)
+		pthread_cond_wait(&canProd, &OLA);
+	strcpy(inputCommands[producePtr++], data);
+	if(producePtr == MAX_COMMANDS)
+		producePtr = 0;
+	count++;
+	pthread_cond_signal(&canCons);
+	pthread_mutex_unlock(&OLA);
 }
 
-char *removeCommand() {
-	command_mutex_lock();
-	int aux_headQueue;
-	if (numberCommands > 0) {
-		numberCommands--;
-		/* headQueue is saved in local variable aux_headQueue since it can't be altered after the unlock */
-		aux_headQueue = headQueue++;
-		command_mutex_unlock();
-		return inputCommands[aux_headQueue];
-	}
-	command_mutex_unlock();
-	return NULL;
+void removeCommand(char* command) {
+	//pthread_mutex_lock(&OLA);
+	while(count == 0)
+		pthread_cond_wait(&canCons, &OLA);
+	strcpy(command, inputCommands[consumePtr++]);
+	if(consumePtr == MAX_COMMANDS)
+		consumePtr = 0;
+	count--;
+	pthread_cond_signal(&canProd);
+	//pthread_mutex_unlock(&OLA);
 }
 
 void errorParse() {
@@ -52,7 +58,8 @@ void errorParse() {
 	exit(EXIT_FAILURE);
 }
 
-void processInput(char * input_file){
+void* processInput(void* arg){
+	char* input_file = (char*) arg;
 	FILE *ptrf;
 	ptrf = fopen(input_file,"r");
 	if (ptrf == NULL) {
@@ -79,23 +86,19 @@ void processInput(char * input_file){
 			case 'c':
 				if(numTokens != 3)
 					errorParse();
-				if(insertCommand(line))
-					break;
-				return;
+				insertCommand(line);
+				break;
 				
 			case 'l':
 				if(numTokens != 2)
 					errorParse();
-				if(insertCommand(line))
-					break;
-				return;
-				
+				insertCommand(line);
+				break;
 			case 'd':
 				if(numTokens != 2)
 					errorParse();
-				if(insertCommand(line))
-					break;
-				return;
+				insertCommand(line);
+				break;
 				
 			case '#':
 				break;
@@ -109,6 +112,8 @@ void processInput(char * input_file){
 		printf("Error: could not close the output file\n");
 		exit(EXIT_FAILURE);
 	}
+	endOfFile = 1;
+	return NULL;
 }
 
 /* 
@@ -120,11 +125,11 @@ void * applyCommands() {
 	* the reading of numberComands can be done safely
 	*/
 	locked_stack * stack = create_locked_stack();
-	command_mutex_lock();
-	while (numberCommands > 0) {
-		command_mutex_unlock();
-		  
-		const char *command = removeCommand();
+	pthread_mutex_lock(&OLA);
+	while (count > 0 || !endOfFile){
+		char command[MAX_INPUT_SIZE];
+		removeCommand(command);
+		pthread_mutex_unlock(&OLA);
 
 		char token, type;
 		char name[MAX_INPUT_SIZE];
@@ -136,7 +141,7 @@ void * applyCommands() {
 
 		if (command == NULL) {
 			/* lock is used so the begining of the next loop can be read safely again */
-			command_mutex_lock();
+			pthread_mutex_lock(&OLA);
 			continue;
 		}
 
@@ -180,11 +185,11 @@ void * applyCommands() {
 				exit(EXIT_FAILURE);
 		}
 		/* again, lock is used so the begining of the next loop can be read safely*/
-		command_mutex_lock();
+		pthread_mutex_lock(&OLA);
 	}
 	/* unlocked is used since it didn't get intside the while loop and so the lock is still active */
 	delete_locked_stack(stack);
-	command_mutex_unlock();
+	pthread_mutex_unlock(&OLA);
 	return NULL;
 }
 
@@ -257,14 +262,18 @@ int main(int argc, char* argv[]) {
 	char *output_file = argv[2];
 	int t_pool_size;
 
+	pthread_mutex_init(&OLA, NULL);
+	pthread_cond_init(&canProd, NULL);
+	pthread_cond_init(&canCons, NULL);
+	pthread_t adeus;
+
 	verify_input(argc, argv);
 	/* init filesystem */
 	
 	init_fs();
 
 	/* process input and print tree */
-	processInput(input_file);
-
+	adeus = pthread_create(&adeus, NULL, processInput, input_file);
 	sscanf(argv[3], "%d", &t_pool_size);
 	threads_initializer(t_pool_size);
 
@@ -277,6 +286,11 @@ int main(int argc, char* argv[]) {
 	printf("TecnicoFS completed in %.4f seconds.\n", time_elapsed);
 	
 	print_tecnicofs_tree(output_file);
+
+	pthread_mutex_destroy(&OLA);
+	pthread_cond_destroy(&canProd);
+	pthread_cond_destroy(&canCons);
+
 
 	/* release allocated memory */
 	destroy_fs();
