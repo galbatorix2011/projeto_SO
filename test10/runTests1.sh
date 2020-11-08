@@ -9,9 +9,6 @@ do
         inputName=$(basename $input)
         echo InputFile=$inputName NumThreads=$nThread
         outputFile=${outputDir}/${inputName%.txt}-${nThread}.txt
-        ./tecnicofs < tecnicofs "$input" "$outputFile" $nThread > aux.txt
-        lastLine=$( tail -n 1 aux.txt )
-        rm aux.txt
-        echo ${lastLine}
+        ./tecnicofs "$input" "$outputFile" $nThread | tail -n 1
     done
 done
