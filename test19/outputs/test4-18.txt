@@ -1,0 +1,4 @@
+
+/animals
+/fruits
+/fruits

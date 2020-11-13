@@ -1,7 +1,7 @@
 
-/drapery
-/ergal
 /cypseline
+/ergal
+/drapery
 /telfer
 /saccharimetrical
 /reluctantly
@@ -14,5 +14,6 @@
 /Lif
 /s1
 /s1/s2
+/s1/s2/s5
 /s1/s3
 /benumb

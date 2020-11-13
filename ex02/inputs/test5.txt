@@ -1,0 +1,7 @@
+c a d
+c a/b d
+c a/b/c d
+c a/b/c/d f
+l a/b
+l a/b/c
+l a/b/c/x

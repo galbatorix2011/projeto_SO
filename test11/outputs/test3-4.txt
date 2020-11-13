@@ -1,6 +1,6 @@
 
-/ergal
 /drapery
+/ergal
 /cypseline
 /telfer
 /saccharimetrical
@@ -13,7 +13,7 @@
 /unwaggable
 /Lif
 /s1
-/s1/s2
+/s1/s5
 /s1/s3
 /s1/s4
 /benumb

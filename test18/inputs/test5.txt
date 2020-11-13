@@ -1,0 +1,11 @@
+c a d
+c a/b d
+c a/b/c f
+c d d
+c d/f d
+c d/f/g d
+c d/f/g/e d
+m a/b/c d/f/g/e/k
+c a/b/x d
+m a/b/c /a/b/x/h
+m a/b/e d/f/y
