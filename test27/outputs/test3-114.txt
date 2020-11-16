@@ -1,19 +1,18 @@
 
+/drapery
 /telfer
+/ergal
 /cypseline
 /saccharimetrical
-/drapery
-/ergal
 /reluctantly
 /dalle
-/Ceramium
 /coheritage
+/Ceramium
 /Paulinist
 /mesiogingival
 /unwaggable
 /Lif
 /s1
-/s1/s2
-/s1/s2/s4
 /s1/s3
+/s1/s2
 /benumb

@@ -1,7 +1,4 @@
 
 /a
 /a/b
-/a/b/c
-/a/b/c/e
 /x
-/x/y

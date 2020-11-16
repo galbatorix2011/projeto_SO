@@ -7,6 +7,7 @@
 #include "state.h"
 #include <errno.h>
 
+// global variables from the main.c file
 extern pthread_mutex_t commands_lock;
 extern pthread_cond_t canProd;
 extern pthread_cond_t canCons;
@@ -181,9 +182,12 @@ void unlock_locked_stack(locked_stack * stack){
 }
 
 /*
- * Goes through the stacks and for each node, unlocks its inode
+ * Searches the nodes of the stack until it finds a node with a certain inumber and if found, returns it
  * Input:
  *    - stack: stacks that contains the inumbers of the locked nodes
+ *    - inumber: value of the inumber that  is to be searched
+ * Output:
+ *    - node: node that contains the inumber (NULL if the inumber isn't found)
  */
 locked_node* is_inumber_locked(locked_stack *stack, int inumber){
     locked_node * node = stack->head;

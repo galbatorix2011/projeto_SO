@@ -25,6 +25,8 @@ void inode_table_init() {
         inode_table[i].nodeType = T_NONE;
         inode_table[i].data.dirEntries = NULL;
         inode_table[i].data.fileContents = NULL;
+
+        // the locks of each inode are initialized with the initialization of the table
         if (pthread_rwlock_init(&inode_table[i].lock, NULL) != 0){
             fprintf(stderr, "Error: could not init lock\n");
             exit(EXIT_FAILURE);
@@ -35,7 +37,6 @@ void inode_table_init() {
 /*
  * Releases the allocated memory for the i-nodes tables.
  */
-
 void inode_table_destroy() {
     for (int i = 0; i < INODE_TABLE_SIZE; i++) {
         if (inode_table[i].nodeType != T_NONE) {
@@ -44,6 +45,8 @@ void inode_table_destroy() {
             if (inode_table[i].data.dirEntries)
                 free(inode_table[i].data.dirEntries);
         }
+
+        // the locks of each inode are destroyed only when the table is destroyed
         if (pthread_rwlock_destroy(&inode_table[i].lock) != 0){
             fprintf(stderr, "Error: could not destroy lock\n");
             exit(EXIT_FAILURE);
@@ -51,15 +54,22 @@ void inode_table_destroy() {
     }
 }
 
+/*
+ * tries to lock a node and returns SUCCESS or FAIL
+ * Input:
+ *    - inumber: inumber of the inode that we will try to lock
+ * Output:
+ *    returns SUCCESS or FAIL
+ */
 int try_lock_inode(int inumber){
     int res = pthread_rwlock_trywrlock(&inode_table[inumber].lock);
     switch (res){
     case 0:
-        return 1;
+        return SUCCESS;
     case EBUSY:
-        return 0;
+        return FAIL; 
     case EDEADLK:
-        return 0;
+        return FAIL;
     default:
         fprintf(stderr, "Error: could not lock lock\n");
         exit(EXIT_FAILURE);
@@ -80,8 +90,9 @@ int inode_create(type nType) {
     insert_delay(DELAY);
 
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
-
-        if (!try_lock_inode(inumber))
+        
+        //if a lock can't be made, it means an inode is being created and therefore we search for another one
+        if (try_lock_inode(inumber) == FAIL)
             continue;
 
         if (inode_table[inumber].nodeType == T_NONE) {

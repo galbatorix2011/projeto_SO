@@ -112,8 +112,19 @@ int lookup_sub_node(char *name, DirEntry *entries) {
 	return FAIL;
 }
 
+
+/*
+ * Locks the the origin path and also checks if it checks all the requirements
+ * Inputs:
+ *   - f_type: F_WRITE (if its the first path being locked) or F_MOV_SECOND (otherwise) 
+ *   - same_path: if both parent names have the same path, only one lock ahs to be done
+ * 	 - the other inputs are trivial to understand.
+ * Output:
+ *   - returns SUCCESS, FAIL or MAY_BE_SUBDIR
+ */ 
 int aux_move_origin(locked_stack *stack, char* parent_name1, int * parent_inumber1, char * path1, char *path2, 
 			func_type f_type, char* child_name1, char *child_name2, int * child_inumber1, int same_path) {
+
 	type pType1;
 	union Data pdata1;
 
@@ -130,26 +141,36 @@ int aux_move_origin(locked_stack *stack, char* parent_name1, int * parent_inumbe
 		printf("failed to move %s to %s, parent origin %s is not a dir\n", path1, path2, parent_name1);
 		return FAIL;
 	}
-	 
+	
+	// the move can only be done if the origin parent has the origin child
 	if ((*child_inumber1 = lookup_sub_node(child_name1, pdata1.dirEntries)) == FAIL) {
 		printf("failed to move %s to %s, %s doesnt exist in dir %s\n",
 		       path1, path2, child_name1, parent_name1);
 		return FAIL;
 	}
 
+	// in this case, the move will act as a rename, and so we need to check if the destiny child
+	// exists in the parent name
 	if (same_path && lookup_sub_node(child_name2, pdata1.dirEntries) != FAIL) {
 		printf("failed to move %s to %s, %s already exists in destiny dir %s\n",
 		       path1, path2, child_name2, parent_name1);
 		return FAIL;
 	}
 
-	if (f_type == L_WRITE && inode_table[*child_inumber1].nodeType == T_DIRECTORY)
+	// if its the first path being lock and its child is a dir we can be in a situation such as this:
+	// "m a/b a/b/c/x". this shouldn't be possible so we return MAY_BE_SUBDIR so we can check 
+	//if thats the case or not
+	if (f_type == F_WRITE && inode_table[*child_inumber1].nodeType == T_DIRECTORY)
 		return MAY_BE_SUBDIR;
 
 	return SUCCESS; 		
 }
 
-
+/*
+ * Locks the the destiny path and also checks if it checks all the requirements
+ * Output:
+ *   - returns SUCCESS or FAIL 
+ */ 
 int aux_move_destiny(locked_stack *stack, char* parent_name2, 
 				int * parent_inumber2, char * path1, char *path2, char *child_name2, func_type f_type) {
 	type pType2;
@@ -178,6 +199,11 @@ int aux_move_destiny(locked_stack *stack, char* parent_name2,
 	return SUCCESS; 		
 }
 
+/*
+ * checks the case "m a/b a/b/c/x" by checking if a "b" is in "a/b/c/x"
+ * Output:
+ *   - returns SUCCESS or FAIL 
+ */ 
 int check_invalid_subDir(char* child_name2, char* parent_name2){
 	char *saveptr;
 	char full_path[MAX_FILE_NAME];
@@ -193,6 +219,11 @@ int check_invalid_subDir(char* child_name2, char* parent_name2){
 	return SUCCESS;
 }
 
+/*
+ * Locks the the destiny path and also checks if it checks all the requirements
+ * Output:
+ *   - returns SUCCESS or FAIL 
+ */ 
 int move(char *path1, char* path2, locked_stack* stack) {
 	int parent_inumber1, parent_inumber2;
 	int child_inumber1;
@@ -433,7 +464,7 @@ int lock_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *mov
 	if (f_type == F_WRITE || f_type == F_MOV_SECOND){
 		latch_lock(inumber, L_WRITE);
 	}
-	if (f_type == L_READ)
+	if (f_type == F_READ)
 		latch_lock(inumber, L_READ);
 	push_locked_stack(stack, inumber);
 	return SUCCESS;

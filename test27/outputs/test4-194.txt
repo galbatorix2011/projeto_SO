@@ -1,3 +1,5 @@
 
 /fruits
+/fruits/grape
+/fruits/orange
 /animals

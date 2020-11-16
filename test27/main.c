@@ -233,12 +233,6 @@ void threads_initializer(int t_pool_size) {
 		}
 	}
 
-	/* the timer starts right after thread pool is initiated */
-	if (clock_gettime(CLOCK_REALTIME, &begin) != 0){
-		fprintf(stderr, "Error: could not start clock\n");
-		exit(EXIT_FAILURE);
-	}
-
 	/* waits before all threads finish */
 	for (i = 0; i < t_pool_size; i++) {
 		if (pthread_join(pid[i], NULL) != 0) {
@@ -288,7 +282,15 @@ int main(int argc, char* argv[]) {
 	init_fs();
 
 	/* process input */
+	/* the timer starts right after thread pool is initiated */
+	
 	init_command_lock();
+
+	if (clock_gettime(CLOCK_REALTIME, &begin) != 0){
+		fprintf(stderr, "Error: could not start clock\n");
+		exit(EXIT_FAILURE);
+	}
+	
 	if (pthread_create(&inputThread, NULL, processInput, input_file) != 0){
 		fprintf(stderr, "Error: could not create thread k\n");
 		exit(EXIT_FAILURE);

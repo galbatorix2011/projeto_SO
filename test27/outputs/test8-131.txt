@@ -1,8 +1,4 @@
 
-/x
-/x/y
 /a
 /a/b
-/a/b/c
-/a/b/c/e
-/a/b/c/d
+/x
