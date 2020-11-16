@@ -1,10 +1,10 @@
 
-/cypseline
 /drapery
-/telfer
-/saccharimetrical
 /ergal
+/cypseline
+/saccharimetrical
 /reluctantly
+/telfer
 /dalle
 /Ceramium
 /coheritage

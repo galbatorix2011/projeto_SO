@@ -1,3 +1,5 @@
 
 /fruits
+/fruits/banana
+/fruits/orange
 /animals

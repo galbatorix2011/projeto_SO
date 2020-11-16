@@ -4,3 +4,6 @@
 /b/d
 /b/d/v
 /b/d/z
+/b/d/z/l
+/b/d/z/a
+/b/d/j

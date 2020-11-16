@@ -2,7 +2,3 @@
 /a
 /b
 /b/d
-/b/d/z
-/b/d/z/a
-/b/d/j
-/b/d/v

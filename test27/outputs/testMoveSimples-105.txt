@@ -1,3 +1,7 @@
 
-/b
 /a
+/a/c
+/a/c/j
+/a/c/z
+/a/c/z/a
+/b

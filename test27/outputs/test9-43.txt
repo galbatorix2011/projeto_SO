@@ -4,5 +4,3 @@
 /a/b/c
 /x
 /x/y
-/x/y/z
-/x/y/z/m
