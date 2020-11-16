@@ -143,7 +143,7 @@ int aux_move_origin(locked_stack *stack, char* parent_name1, int * parent_inumbe
 		return FAIL;
 	}
 
-	if (f_type == L_WRITE && inode_table[*child_inumber1].nodeType == T_DIRECTORY)
+	if (f_type == F_WRITE && inode_table[*child_inumber1].nodeType == T_DIRECTORY)
 		return MAY_BE_SUBDIR;
 
 	return SUCCESS; 		
@@ -433,7 +433,7 @@ int lock_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *mov
 	if (f_type == F_WRITE || f_type == F_MOV_SECOND){
 		latch_lock(inumber, L_WRITE);
 	}
-	if (f_type == L_READ)
+	if (f_type == F_READ)
 		latch_lock(inumber, L_READ);
 	push_locked_stack(stack, inumber);
 	return SUCCESS;
