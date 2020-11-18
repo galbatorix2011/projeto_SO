@@ -452,8 +452,8 @@ int delete(char *name, locked_stack * stack){
 /*
  * Locks the next inode of the path if it is the last inode
  */
-int lock_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *move_stop_checking){
-
+void lock_NULL_path(locked_stack * stack, int inumber, func_type f_type){
+	
 	// if the type is F_WRITE or F_MOV_SECOND than its means we are going to change that dir
 	// and therefore have to do a write lock
 	if (f_type == F_WRITE || f_type == F_MOV_SECOND){
@@ -463,10 +463,9 @@ int lock_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *mov
 	if (f_type == F_READ)
 		lock_inode(inumber, L_READ);
 	push_locked_stack(stack, inumber);
-	return SUCCESS;
 }
 
-int lock_not_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *move_stop_checking){
+void lock_not_NULL_path(locked_stack * stack, int inumber, func_type f_type, int *move_stop_checking){
 
 	// if the type is F_WRITE, F_READ, F_MOV_SECOND(and we dont have to check the the node has already beem lock)
 	// we can simply lock the node for reading
@@ -482,22 +481,17 @@ int lock_not_NULL_path(locked_stack * stack, int inumber, func_type f_type, int 
 		push_locked_stack(stack, inumber);
 		*move_stop_checking = 1;
 	}
-
-	return SUCCESS;
 }
 
 /* 
  * Locks the inode in a different way, whether its the last inode of a path or not.
  * if it is, than the path will be NULL;	
  */
-int lookup_lock_inode(locked_stack * stack, char * path, int inumber, func_type f_type, int * move_stop_checking){
-	int res = SUCCESS;
+void lookup_lock_inode(locked_stack * stack, char * path, int inumber, func_type f_type, int * move_stop_checking){
 	if (path)
-		res = lock_not_NULL_path(stack, inumber, f_type, move_stop_checking);
+		lock_not_NULL_path(stack, inumber, f_type, move_stop_checking);
 	else if (!path)
-		res = lock_NULL_path(stack, inumber, f_type, move_stop_checking);
-	return res;
-
+		lock_NULL_path(stack, inumber, f_type);
 }
 
 /*
