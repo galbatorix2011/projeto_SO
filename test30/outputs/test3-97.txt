@@ -1,12 +1,12 @@
 
 /drapery
-/dalle
-/saccharimetrical
-/cypseline
 /ergal
+/cypseline
 /telfer
-/Ceramium
+/saccharimetrical
 /reluctantly
+/dalle
+/Ceramium
 /coheritage
 /Paulinist
 /mesiogingival

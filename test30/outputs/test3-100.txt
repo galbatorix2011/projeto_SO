@@ -1,10 +1,10 @@
 
-/ergal
-/telfer
-/cypseline
-/reluctantly
 /drapery
+/ergal
+/cypseline
+/telfer
 /saccharimetrical
+/reluctantly
 /dalle
 /Ceramium
 /coheritage
@@ -17,4 +17,4 @@
 /s1/s2/s4
 /s1/s2/s5
 /s1/s3
-/Dungan
+/benumb

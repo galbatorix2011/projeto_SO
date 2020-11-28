@@ -1,11 +1,11 @@
 
 /drapery
 /ergal
-/telfer
-/dalle
-/reluctantly
-/saccharimetrical
 /cypseline
+/telfer
+/saccharimetrical
+/reluctantly
+/dalle
 /Ceramium
 /coheritage
 /Paulinist

@@ -1,17 +1,4 @@
 
-/b
-/b/b
-/b/b/b
-/b/b/b/b
-/b/b/b/d1
-/b/b/b/d2
-/b/b/c
-/b/b/c/e1
-/b/b/c/e2
-/b/d
-/b/d/d
-/b/d/d/d
-/b/d/e
 /a
 /a/a
 /a/a/a
@@ -20,7 +7,13 @@
 /a/c
 /a/c/c
 /a/c/c/c
-/a/c/c/f1
-/a/c/c/f2
 /a/c/d
-/a/c/d/g1
+/b
+/b/b
+/b/b/b
+/b/b/b/b
+/b/b/c
+/b/d
+/b/d/d
+/b/d/d/d
+/b/d/e

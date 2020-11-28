@@ -15,7 +15,5 @@
 /b/b/c
 /b/d
 /b/d/d
-/b/d/d/h2
 /b/d/d/d
 /b/d/e
-/b/d/e/i2

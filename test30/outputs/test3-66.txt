@@ -1,7 +1,7 @@
 
-/cypseline
-/ergal
 /drapery
+/ergal
+/cypseline
 /telfer
 /saccharimetrical
 /reluctantly
