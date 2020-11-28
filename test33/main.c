@@ -49,7 +49,7 @@ int receive_command(int sockfd,char* in_buffer, struct sockaddr_un *client_addr)
 	int c;
 	socklen_t addrlen = sizeof(struct sockaddr_un);
 	while ((c = recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,
-				(struct sockaddr *) &client_addr, &addrlen)) <= 0);
+				(struct sockaddr *) client_addr, &addrlen)) <= 0);
 	return c;
 }
 /* 
@@ -74,8 +74,15 @@ void * applyCommands(void *arg) {
 		printf("%s\n", in_buffer);
 
 		c = sprintf(out_buffer, "Ola' %s, que tal vai isso?", in_buffer);
-		int bytes = sendto(sockfd, out_buffer, c + 1, 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_un));
-		printf("erro -- %d\n%d\n---------\n", bytes, errno);
+		char * ezgonext = "OLA!";
+		printf("path ---- %s\n",client_addr.sun_path);
+		if (sendto(sockfd, ezgonext, sizeof(ezgonext), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_un)) < 0){
+			fprintf(stderr, "Error: Could not send msg\n");
+			exit(EXIT_FAILURE);
+		}
+			
+		
+		//printf("erro -- %d\n%d\n---------\n", bytes, errno);
 
 		
 		//char command[MAX_INPUT_SIZE];
@@ -261,12 +268,12 @@ int main(int argc, char* argv[]) {
 	double time_elapsed;
 	char *output_file = argv[2];
 	int t_pool_size;
-	char *socket_path;
+	//char *socket_path;
 
 	/*very input*/
 	verify_input(argc, argv);
 
-	socket_path = argv[2];
+	//socket_path = argv[2];
 
 	/* init filesystem */
 	init_fs();

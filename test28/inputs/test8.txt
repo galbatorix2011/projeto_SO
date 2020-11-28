@@ -1,0 +1,9 @@
+c a d
+c a/b d
+c a/b/c d
+c a/b/c/e d
+c x d
+c x/y d
+c x/y/z d
+m x/y/z a/b/c/d
+m a/b/c/e x/y/m
